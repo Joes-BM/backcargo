@@ -34,8 +34,19 @@ const PagosPersonal_1 = require("../modelos/PagosPersonal");
 const LiquidarOrdenTrabajo_1 = require("../modelos/LiquidarOrdenTrabajo");
 const SerieNroDocumentos_1 = require("../modelos/SerieNroDocumentos");
 const Sequelize = require('sequelize');
-exports.conexion = new Sequelize("operbam", "root", "root", {
-    host: 'localhost',
+// exports.conexion = new Sequelize("operbam", "root", "root", {
+//     host: 'localhost',
+//     dialect: 'mysql',
+//     timezone: '-05:00',
+//     // configuración para lectura de fechas en la base de datos
+//     dialectOptions: {
+//         useUTC: false,
+//         dateStrings: true,
+//         typeCast: true
+//     }
+// });
+exports.conexion = new Sequelize("JFUbCDh2H4", "JFUbCDh2H4", "KYG2VG9Agt", {
+    host: 'remotemysql.com',
     dialect: 'mysql',
     timezone: '-05:00',
     // configuración para lectura de fechas en la base de datos
