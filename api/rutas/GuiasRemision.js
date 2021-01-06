@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.guiasremision_router = void 0;
+const express_1 = require("express");
+const GuiasRemision_1 = require("../controlador/GuiasRemision");
+exports.guiasremision_router = express_1.Router();
+exports.guiasremision_router.get('/guiasremision/ordentrabajo/:id', GuiasRemision_1.getGuiasRemisionbyIdOrdenTrabajo);
+exports.guiasremision_router.post('/guiasremision', GuiasRemision_1.posGuiasRemision);
+exports.guiasremision_router.put('/guiasremision', GuiasRemision_1.updateGuiasRemision);
+exports.guiasremision_router.delete('/guiasremision/:id', GuiasRemision_1.deleteGuiasRemision);
+exports.guiasremision_router.get('/guiasremision/:id', GuiasRemision_1.getGuiasRemisionById);

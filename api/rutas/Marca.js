@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.marca_router = void 0;
+const express_1 = require("express");
+const Marca_1 = require("../controlador/Marca");
+exports.marca_router = express_1.Router();
+exports.marca_router.get('/marca', Marca_1.getMarca);
+exports.marca_router.post('/marca', Marca_1.posMarca);
+exports.marca_router.put('/marca', Marca_1.updateMarca);
+exports.marca_router.delete('/marca', Marca_1.deleteMarca);

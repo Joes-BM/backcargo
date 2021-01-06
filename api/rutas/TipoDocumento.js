@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.tipoDocumento_router = void 0;
+const express_1 = require("express");
+const TipoDocumento_1 = require("../controlador/TipoDocumento");
+exports.tipoDocumento_router = express_1.Router();
+exports.tipoDocumento_router.get('/tdoc', TipoDocumento_1.getTipoDocumento);
+exports.tipoDocumento_router.get('/tdoc/:id', TipoDocumento_1.getTipoDocumentoById);
+exports.tipoDocumento_router.post('/tdoc', TipoDocumento_1.posTipoDocumento);
+exports.tipoDocumento_router.put('/tdoc', TipoDocumento_1.updateTipoDocumento);
+exports.tipoDocumento_router.delete('/tdoc', TipoDocumento_1.deleteTipoDocumento);

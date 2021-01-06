@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dope_router = void 0;
+const express_1 = require("express");
+const DocumentoPersonal_1 = require("../controlador/DocumentoPersonal");
+exports.dope_router = express_1.Router();
+exports.dope_router.get('/dope', DocumentoPersonal_1.getDocumentosPersonales);
+exports.dope_router.post('/dope', DocumentoPersonal_1.posDocumentosPersonales);
+exports.dope_router.put('/dope', DocumentoPersonal_1.updateDocumentosPersonales);
+exports.dope_router.delete('/dope', DocumentoPersonal_1.deleteDocumentosPersonales);
+exports.dope_router.get('/dope/:id', DocumentoPersonal_1.getDocumentosPersonalesById);
+exports.dope_router.get('/docu/pers/:id', DocumentoPersonal_1.getDopeByIdTiDo);

@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.facturar_router = void 0;
+const express_1 = require("express");
+const Facturar_1 = require("../controlador/Facturar");
+exports.facturar_router = express_1.Router();
+exports.facturar_router.get('/facturar/:idCliente', Facturar_1.getOrdenTrabajoPorFacturarPorCliente);
+exports.facturar_router.get('/facturar', Facturar_1.getOrdenTrabajoPorFacturar);
+exports.facturar_router.get('/seleccion/ordent', Facturar_1.getOTSeleccionados);
+exports.facturar_router.post('/facturar', Facturar_1.posFactura);

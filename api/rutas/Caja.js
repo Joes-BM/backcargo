@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.caja_router = void 0;
+const express_1 = require("express");
+const Caja_1 = require("../controlador/Caja");
+exports.caja_router = express_1.Router();
+exports.caja_router.post('/caja', Caja_1.posCaja);
+exports.caja_router.get('/caja', Caja_1.getCaja);
+exports.caja_router.put('/caja', Caja_1.updateCaja);
+exports.caja_router.delete('/caja/:id', Caja_1.deleteCaja);
+exports.caja_router.get('/caja/:id', Caja_1.getCajaById);
+exports.caja_router.get('/caja/orden/:id', Caja_1.getCajaByIdOrdenTrabajo);

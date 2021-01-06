@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.rutacliente_router = void 0;
+const express_1 = require("express");
+const RutaCliente_1 = require("../controlador/RutaCliente");
+exports.rutacliente_router = express_1.Router();
+exports.rutacliente_router.get('/rutacliente', RutaCliente_1.obtenerRutaCliente);
+exports.rutacliente_router.get('/rutacliente/todos/rutacliente', RutaCliente_1.getRutaCliente);
+exports.rutacliente_router.get('/rutacliente/:id', RutaCliente_1.getRutaClienteById);
+exports.rutacliente_router.get('/rutacliente/ruta/:carr/:id', RutaCliente_1.obtenerRutaClienteByIdCliente);
+exports.rutacliente_router.post('/rutacliente', RutaCliente_1.posRutaCliente);
+exports.rutacliente_router.put('/rutacliente', RutaCliente_1.updateRutaCliente);
+exports.rutacliente_router.delete('/rutacliente/:id', RutaCliente_1.deleteRutaCliente);

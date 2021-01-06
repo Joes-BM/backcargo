@@ -1,0 +1,29 @@
+{
+    "name": "trans",
+    "version": "1.0.0",
+    "description": "sistema web",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "node ./index.js"
+    },
+    "author": "Joe BM",
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^1.19.0",
+        "express": "^4.17.1",
+        "express-fileupload": "^1.1.6",
+        "jsonwebtoken": "^8.5.1",
+        "mysql2": "^2.1.0",
+        "sequelize": "^5.21.5"
+    },
+    "devDependencies": {
+        "@types/bluebird": "^3.5.30",
+        "@types/body-parser": "^1.19.0",
+        "@types/crypto-js": "^3.1.43",
+        "@types/express": "^4.17.3",
+        "@types/express-fileupload": "^1.1.2",
+        "@types/node": "^13.9.2",
+        "@types/validator": "^12.0.1"
+    }
+}

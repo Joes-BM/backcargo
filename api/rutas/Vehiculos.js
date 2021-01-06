@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.vehiculos_router = void 0;
+const express_1 = require("express");
+const Vehiculos_1 = require("../controlador/Vehiculos");
+exports.vehiculos_router = express_1.Router();
+exports.vehiculos_router.get('/vehiculos', Vehiculos_1.getVehiculos);
+exports.vehiculos_router.get('/todos/vehiculos', Vehiculos_1.obtenerVehiculos);
+exports.vehiculos_router.get('/vehiculos/:id', Vehiculos_1.getVehiculosById);
+exports.vehiculos_router.get('/tipo/remolcador', Vehiculos_1.obtenerRemolcador);
+exports.vehiculos_router.get('/vehiculos/tipo/carreta', Vehiculos_1.obtenerCarretas);
+exports.vehiculos_router.post('/vehiculos', Vehiculos_1.postVehiculos);
+exports.vehiculos_router.put('/vehiculos', Vehiculos_1.updateVehiculos);
+exports.vehiculos_router.delete('/vehiculos/:id', Vehiculos_1.deleteVehiculos);

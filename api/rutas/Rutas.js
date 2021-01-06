@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.rutas_router = void 0;
+const express_1 = require("express");
+const Rutas_1 = require("../controlador/Rutas");
+exports.rutas_router = express_1.Router();
+exports.rutas_router.get('/ruta', Rutas_1.obtenerRutas);
+exports.rutas_router.get('/ruta/todos/ruta', Rutas_1.getRutas);
+exports.rutas_router.get('/ruta/:id', Rutas_1.getRutasById);
+exports.rutas_router.post('/ruta', Rutas_1.posRutas);
+exports.rutas_router.put('/ruta', Rutas_1.updateRutas);
+exports.rutas_router.delete('/ruta/:id', Rutas_1.deleteRutas);

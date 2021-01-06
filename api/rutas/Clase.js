@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.clase_router = void 0;
+const express_1 = require("express");
+const Clase_1 = require("../controlador/Clase");
+exports.clase_router = express_1.Router();
+exports.clase_router.get('/clase', Clase_1.getClase);
+exports.clase_router.post('/clase', Clase_1.posClase);
+exports.clase_router.put('/clase', Clase_1.updateClase);
+exports.clase_router.delete('/clase', Clase_1.deleteClase);
