@@ -30,12 +30,26 @@ exports.obtenerRutaCliente = (req, res) => {
 };
 // TODOS
 exports.getRutaCliente = (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
     Sequelize_1.RutaCliente.findAll({
-        include: [{ model: Sequelize_1.Rutas }, { model: Sequelize_1.Persona }]
-    }).then((objetoRutaCliente) => {
-        res.status(200).json({
-            mensaje: 'OK',
-            contenido: objetoRutaCliente
+        include: [{ model: Sequelize_1.Rutas }, { model: Sequelize_1.Persona }],
+        offset: desde,
+        limit: 5
+    }).then((objRutaCliente) => {
+        const amount = Sequelize_1.RutaCliente.count()
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objRutaCliente,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando RutaClientes',
+            errors: err
         });
     });
 };
@@ -113,7 +127,7 @@ exports.deleteRutaCliente = (req, res) => {
 // BUSCAR POR ID - [ACTUALIZAR]
 exports.getRutaClienteById = (req, res) => {
     Sequelize_1.RutaCliente.findByPk(req.params.id, {
-        include: [{ model: Sequelize_1.Rutas }]
+        include: [{ model: Sequelize_1.Rutas }, { model: Sequelize_1.Persona, attributes: ['pers_raso'] }]
     }).then((objRutaCliente) => {
         if (objRutaCliente) {
             res.status(200).json({

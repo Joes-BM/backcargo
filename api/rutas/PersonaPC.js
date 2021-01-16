@@ -8,10 +8,13 @@ exports.persona_router.get('/persona', PersonaPC_1.getPersona);
 exports.persona_router.get('/proveedor', PersonaPC_1.getProveedor);
 exports.persona_router.get('/cliente', PersonaPC_1.getCliente);
 exports.persona_router.get('/conductor', PersonaPC_1.getConductores);
-exports.persona_router.get('/buscar/proveedor', PersonaPC_1.getProveedores);
-exports.persona_router.get('/buscar/proveedor/vehiculo', PersonaPC_1.getProveedoresOfVehiculos);
+// persona_router.get('/buscar/proveedor', getProveedores );
+// persona_router.get('/buscar/proveedor/vehiculo', getProveedoresOfVehiculos );
+exports.persona_router.get('/buscar/proveedor/:tipo', PersonaPC_1.getProveedoresOfTipo);
+exports.persona_router.get('/buscar/proveedores/nocv', PersonaPC_1.getProveedoresSinVehiculoCombustible); //nocv= no combustible y no vehiculo
 exports.persona_router.get('/buscar/cliente', PersonaPC_1.getClientes);
 exports.persona_router.get('/buscar/trabajador', PersonaPC_1.getTrabajadores);
+exports.persona_router.get('/buscar/persona/:ndoc', PersonaPC_1.getPersonaByRuc);
 exports.persona_router.get('/persona/:id', PersonaPC_1.getPersonaById);
 exports.persona_router.post('/persona', PersonaPC_1.postPersona);
 exports.persona_router.put('/persona', PersonaPC_1.updatePersona);

@@ -1,8 +1,57 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePersona = exports.updatePersona = exports.postPersona = exports.getPersonaById = exports.getTrabajadores = exports.getClientes = exports.getProveedoresOfVehiculos = exports.getProveedores = exports.getConductores = exports.getCliente = exports.getProveedor = exports.getPersona = void 0;
+exports.deletePersona = exports.updatePersona = exports.postPersona = exports.getPersonaById = exports.getTrabajadores = exports.getClientes = exports.getProveedoresSinVehiculoCombustible = exports.getProveedoresOfTipo = exports.getConductores = exports.getCliente = exports.getProveedor = exports.getPersona = exports.getPersonaByRuc = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const { Op } = require("sequelize");
+// ****************************
+//     OBTENER PERSONA POR NRO DOCUMENTO [RUC][DNI]
+// ****************************
+exports.getPersonaByRuc = (req, res) => {
+    var ndoc = req.params.ndoc;
+    Sequelize_1.Persona.findAll({
+        where: [{
+                [Op.or]: [
+                    { pers_ruc: ndoc }, { pers_ndoc: ndoc, pers_ruc: null }
+                ]
+            }],
+        include: [
+            {
+                model: Sequelize_1.Distrito,
+                attributes: ['dist_id', 'dist_nom'],
+                include: [{
+                        model: Sequelize_1.Provincia,
+                        attributes: ['prov_id', 'prov_nom'],
+                        include: [{
+                                model: Sequelize_1.Departamento,
+                                attributes: ['dpto_id', 'dpto_nom'],
+                            }]
+                    }]
+            },
+            {
+                model: Sequelize_1.Cargo,
+                attributes: ['cargo_id', 'cargo_nom'],
+                include: [{
+                        model: Sequelize_1.Area,
+                        attributes: ['area_id', 'area_nom']
+                    }]
+            },
+            {
+                model: Sequelize_1.TallasEpp
+            }
+        ]
+    }).then((objPersona) => {
+        res.status(200).json({
+            mensaje: 'OK',
+            contenido: objPersona,
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
+        });
+    });
+};
 // ****************************
 //     OBTENER DESDE => PERSONAL - PROVEEDOR - CLIENTE 
 // ****************************
@@ -141,36 +190,15 @@ exports.getConductores = (req, res) => {
         });
     });
 };
-// PROVEEDORES ACTIVOS
-exports.getProveedores = (req, res) => {
-    Sequelize_1.Persona.findAll({
-        attributes: ['pers_id', 'pers_ruc', 'pers_raso', 'pers_contac', 'pers_temo', 'pers_esta'],
-        where: [{
-                pers_maes: "PROVEEDOR",
-                pers_esta: "ACTIVO",
-                pers_tper: "COMBUSTIBLE"
-            }],
-    }).then((objPersona) => {
-        res.status(200).json({
-            mensaje: 'OK',
-            contenido: objPersona,
-        });
-    }).catch((err) => {
-        res.status(500).json({
-            ok: false,
-            mensaje: 'Error Cargando Proveedores',
-            errors: err
-        });
-    });
-};
-// PROVEEDORES ACTIVOS Y DE VEHICULOS
-exports.getProveedoresOfVehiculos = (req, res) => {
+//BUSCAR PROVEEDOR ACTIVO DE [COMBUSTIBLE][ACEITE][VEHICULO]
+exports.getProveedoresOfTipo = (req, res) => {
+    let tipoPers = req.params.tipo;
     Sequelize_1.Persona.findAll({
         attributes: ['pers_id', 'pers_ruc', 'pers_raso', 'pers_nomb', 'pers_appa', 'pers_apma', 'pers_contac', 'pers_temo', 'pers_esta'],
         where: [{
                 pers_maes: "PROVEEDOR",
                 pers_esta: "ACTIVO",
-                pers_tper: "VEHICULO"
+                pers_tper: tipoPers
             }],
     }).then((objPersona) => {
         res.status(200).json({
@@ -185,6 +213,77 @@ exports.getProveedoresOfVehiculos = (req, res) => {
         });
     });
 };
+// BUSCA PROEVEEDORES QUE NO SEAN DE COMBUSTIBLE NI VEHICULO
+exports.getProveedoresSinVehiculoCombustible = (req, res) => {
+    Sequelize_1.Persona.findAll({
+        attributes: ['pers_id', 'pers_ruc', 'pers_raso', 'pers_nomb', 'pers_appa', 'pers_apma', 'pers_contac', 'pers_temo', 'pers_esta'],
+        where: [{
+                pers_maes: "PROVEEDOR",
+                pers_esta: "ACTIVO",
+                pers_tper: {
+                    [Op.and]: [
+                        { [Op.ne]: 'COMBUSTIBLE' },
+                        { [Op.ne]: 'VEHICULO' },
+                    ]
+                }
+            }],
+    }).then((objPersona) => {
+        res.status(200).json({
+            mensaje: 'OK',
+            contenido: objPersona,
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Proveedores',
+            errors: err
+        });
+    });
+};
+// PROVEEDORES DE COMBUSTIBLE ACTIVOS
+// export let getProveedores = (req:Request,res:Response)=>{
+//     Persona.findAll({
+//         attributes:['pers_id','pers_ruc','pers_raso','pers_contac','pers_temo','pers_esta'],
+//         where:[{
+//             pers_maes:"PROVEEDOR",
+//             pers_esta:"ACTIVO",
+//             pers_tper:"COMBUSTIBLE"
+//         }],
+//     }).then((objPersona:any)=>{
+//         res.status(200).json({
+//             mensaje:'OK',
+//             contenido:objPersona,
+//         })
+//     }).catch((err:any)=>{
+//         res.status(500).json({
+//                ok: false,
+//                mensaje: 'Error Cargando Proveedores',
+//                errors: err
+//            });
+//    });
+// }
+// PROVEEDORES ACTIVOS Y DE VEHICULOS
+// export let getProveedoresOfVehiculos = (req:Request,res:Response)=>{
+//     Persona.findAll({
+//         attributes:['pers_id','pers_ruc','pers_raso','pers_nomb','pers_appa','pers_apma','pers_contac','pers_temo','pers_esta'],
+//         where:[{
+//             pers_maes:"PROVEEDOR",
+//             pers_esta:"ACTIVO",
+//             pers_tper:"VEHICULO"
+//         }],
+//     }).then((objPersona:any)=>{
+//         res.status(200).json({
+//             mensaje:'OK',
+//             contenido:objPersona,
+//         })
+//     }).catch((err:any)=>{
+//         res.status(500).json({
+//                ok: false,
+//                mensaje: 'Error Cargando Proveedores',
+//                errors: err
+//            });
+//    });
+// }
 // CLIENTES
 exports.getClientes = (req, res) => {
     Sequelize_1.Persona.findAll({

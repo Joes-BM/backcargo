@@ -7,6 +7,7 @@ exports.vehiculos_router = express_1.Router();
 exports.vehiculos_router.get('/vehiculos', Vehiculos_1.getVehiculos);
 exports.vehiculos_router.get('/todos/vehiculos', Vehiculos_1.obtenerVehiculos);
 exports.vehiculos_router.get('/vehiculos/:id', Vehiculos_1.getVehiculosById);
+exports.vehiculos_router.get('/vehiculo/:placa', Vehiculos_1.getVehiculosByPlaca);
 exports.vehiculos_router.get('/tipo/remolcador', Vehiculos_1.obtenerRemolcador);
 exports.vehiculos_router.get('/vehiculos/tipo/carreta', Vehiculos_1.obtenerCarretas);
 exports.vehiculos_router.post('/vehiculos', Vehiculos_1.postVehiculos);

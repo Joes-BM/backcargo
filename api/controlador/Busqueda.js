@@ -27,6 +27,9 @@ exports.busqEspecifica = (req, res) => {
         case 'ruta':
             promesa = buscarRutas(busqueda);
             break;
+        case 'rutacliente':
+            promesa = buscarRutaCliente(busqueda);
+            break;
         case 'documento':
             promesa = buscarDocumentos(busqueda);
             break;
@@ -70,6 +73,7 @@ exports.buscar = (req, res) => {
         buscarClientes(busqueda),
         buscarVehiculos(busqueda),
         buscarRutas(busqueda),
+        buscarRutaCliente(busqueda),
         buscarDocumentos(busqueda),
         buscarPagos(busqueda),
         buscarCaja(busqueda),
@@ -83,11 +87,12 @@ exports.buscar = (req, res) => {
             cliente: respuestas[2],
             vehiculo: respuestas[3],
             ruta: respuestas[4],
-            documento: respuestas[5],
-            pago: respuestas[6],
-            caja: respuestas[7],
-            factura: respuestas[8],
-            pagospersonal: respuestas[9],
+            rutacliente: respuestas[5],
+            documento: respuestas[6],
+            pago: respuestas[7],
+            caja: respuestas[8],
+            factura: respuestas[9],
+            pagospersonal: respuestas[10],
         });
     });
     // buscarTrabajadores(busqueda)
@@ -176,14 +181,15 @@ function buscarVehiculos(busqueda) {
                     vehi_esta: 'ACTIVO'
                 }],
             include: [{
-                    model: Sequelize_1.Persona,
+                    model: Sequelize_1.Persona, as: 'trabajador',
                     attributes: ['pers_nomb', 'pers_appa', 'pers_apma']
                 }, {
                     model: Sequelize_1.Clase,
                     attributes: ['clase_id', 'clase_nom']
+                }, {
+                    model: Sequelize_1.Persona, as: 'proveedor'
                 }]
-        })
-            .then((objVehiculos) => {
+        }).then((objVehiculos) => {
             resolve(objVehiculos);
         })
             .catch((err) => {
@@ -211,6 +217,38 @@ function buscarRutas(busqueda) {
         })
             .catch((err) => {
             reject("Error al cargar Rutas" + err);
+        });
+    });
+}
+function buscarRutaCliente(busqueda) {
+    return new Promise((resolve, reject) => {
+        Sequelize_1.RutaCliente.findAll({
+            include: [
+                {
+                    model: Sequelize_1.Rutas,
+                    where: [{
+                            [Op.or]: [{
+                                    ruta_inic: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    ruta_fin: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }
+                            ]
+                        }],
+                },
+                {
+                    model: Sequelize_1.Persona
+                }
+            ]
+        })
+            .then((objRutaCliente) => {
+            resolve(objRutaCliente);
+        })
+            .catch((err) => {
+            reject("Error al cargar Rutas Clientes" + err);
         });
     });
 }

@@ -1,13 +1,29 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDocumentos = exports.updateDocumentos = exports.posDocumentos = exports.getDocumentosById = exports.getDocumentos = void 0;
+exports.actualizarEstados = exports.deleteDocumentos = exports.updateDocumentos = exports.posDocumentos = exports.getDocumentosById = exports.getDocumentosEstados = exports.getDocumentos = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
+const { Op } = require("sequelize");
 const Sequelize = require('sequelize');
 exports.getDocumentos = (req, res) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
     Sequelize_1.Documentos.findAll({
-        include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.DocumentosPersonales }],
+        include: [
+            { model: Sequelize_1.Persona },
+            {
+                model: Sequelize_1.DocumentosPersonales,
+                include: [{ model: Sequelize_1.TipoDocumento }]
+            }
+        ],
         offset: desde,
         limit: 5
     }).then((objetoDocumentos) => {
@@ -18,6 +34,35 @@ exports.getDocumentos = (req, res) => {
                 contenido: objetoDocumentos,
                 total: conteo
             });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Documentos',
+            errors: err
+        });
+    });
+};
+exports.getDocumentosEstados = (req, res) => {
+    Sequelize_1.Documentos.findAll({
+        include: [
+            { model: Sequelize_1.Persona },
+            {
+                model: Sequelize_1.DocumentosPersonales,
+                include: [{ model: Sequelize_1.TipoDocumento }]
+            }
+        ],
+        where: {
+            docu_esta: {
+                [Op.ne]: "VENCIDO"
+            }
+            //     docu_esta:"VENCIDO"
+            // }
+        }
+    }).then((objetoDocumentos) => {
+        res.status(200).json({
+            mensaje: 'OK',
+            contenido: objetoDocumentos,
         });
     }).catch((err) => {
         res.status(500).json({
@@ -111,5 +156,46 @@ exports.deleteDocumentos = (req, res) => {
             };
             res.status(500).send(rpta);
         }
+    });
+};
+let actualizaEstados = (lista) => __awaiter(void 0, void 0, void 0, function* () {
+    const t = yield Sequelize_1.conexion.transaction();
+    try {
+        for (let i = 0; i < lista.length; i++) {
+            let estados = yield Sequelize_1.Documentos.update(lista[i], {
+                where: {
+                    docu_id: lista[i].docu_id
+                },
+                transaction: t
+            });
+        }
+        // let facturaCreado= await Factura.create(factura,{transaction:t});
+        // Detalle.fact_id= facturaCreado.fact_id;
+        // SerieNro.fact_id= facturaCreado.fact_id;
+        // let detalleCreada=  await FacturaDetalle.create(Detalle, {transaction: t});
+        // let serieNroCreado= await SerieNumeroDocumentos.create(SerieNro, {transaction: t});
+        yield t.commit();
+        return true;
+    }
+    catch (error) {
+        yield t.rollback();
+        throw error;
+    }
+});
+exports.actualizarEstados = (req, res) => {
+    actualizaEstados(req.body.lista)
+        .then((listaDocumentos) => {
+        res.status(201).json({
+            ok: true,
+            mensaje: "lista de Documentos Actualizado correctamente",
+            contenido: listaDocumentos
+        });
+    })
+        .catch(error => {
+        res.status(500).json({
+            ok: true,
+            contenido: error,
+            mensaje: "Error interno en el servidor"
+        });
     });
 };

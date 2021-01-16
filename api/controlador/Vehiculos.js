@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.obtenerCarretas = exports.obtenerRemolcador = exports.deleteVehiculos = exports.updateVehiculos = exports.postVehiculos = exports.getVehiculosById = exports.obtenerVehiculos = exports.getVehiculos = void 0;
+exports.obtenerCarretas = exports.obtenerRemolcador = exports.deleteVehiculos = exports.updateVehiculos = exports.postVehiculos = exports.getVehiculosByPlaca = exports.getVehiculosById = exports.obtenerVehiculos = exports.getVehiculos = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
@@ -66,6 +66,42 @@ exports.getVehiculosById = (req, res) => {
                     }
                 ]
             }]
+    }).then((objVehiculos) => {
+        if (objVehiculos) {
+            res.status(200).json({
+                mensaje: 'Vehiculos encontrado ',
+                contenido: objVehiculos
+            });
+        }
+        else {
+            res.status(500).json({
+                mensaje: 'error',
+                contenido: 'No se encontro al Vehiculos'
+            });
+        }
+    });
+};
+// ****************************
+//     OBTENER VEHICULOS BY PLACA
+// ****************************
+exports.getVehiculosByPlaca = (req, res) => {
+    Sequelize_1.Vehiculos.findAll({
+        include: [{
+                model: Sequelize_1.Clase,
+                attributes: ['clase_id', 'clase_nom']
+            }, {
+                model: Sequelize_1.Modelo,
+                attributes: ['mod_id', 'mod_nom'],
+                include: [
+                    {
+                        model: Sequelize_1.Marca,
+                        attributes: ['marc_id', 'marc_nom']
+                    }
+                ]
+            }],
+        where: {
+            vehi_placa: req.params.placa
+        }
     }).then((objVehiculos) => {
         if (objVehiculos) {
             res.status(200).json({

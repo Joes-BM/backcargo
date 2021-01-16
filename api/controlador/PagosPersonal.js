@@ -185,11 +185,14 @@ exports.actualizarEstado = (req, res) => {
     });
 };
 exports.actualizarFechaFinal = (req, res) => {
-    console.log("---------------------------");
-    console.log(req.body);
-    console.log("---------------------------");
+    // console.log("---------------------------");
+    // console.log(req.body);
+    // console.log("---------------------------");
+    let fecha = new Date();
+    let fechaTermino = fecha.toString().substring(0, 10);
+    let newDate = new Date(fechaTermino.substring(0, 10).replace(/-/g, '\/').replace(/T.+/, ''));
     Sequelize_1.PagosPersonal.update({
-        pagper_fefi: new Date(),
+        pagper_fefi: newDate,
         pagper_estt: req.body.pagper_estt
     }, {
         where: {
