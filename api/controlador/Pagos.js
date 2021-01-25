@@ -1,8 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPagosById = exports.deletePagos = exports.updatePagos = exports.posPagos = exports.getPagos = void 0;
+exports.getPagosPorVencer = exports.getPagosVencidos = exports.getPagosById = exports.deletePagos = exports.updatePagos = exports.posPagos = exports.getPagos = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
+// import * as moment from 'moment'
+const moment = require('moment');
 const Sequelize = require('sequelize');
+const { Op } = require("sequelize");
+moment.locale('es');
 exports.getPagos = (req, res) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
@@ -114,5 +118,70 @@ exports.getPagosById = (req, res) => {
                 contenido: 'No se encontro el Pago'
             });
         }
+    });
+};
+exports.getPagosVencidos = (req, res) => {
+    let hoy = moment();
+    Sequelize_1.Pagos.findAll({
+        include: [{
+                model: Sequelize_1.Vehiculos,
+                attributes: ['vehi_id', 'vehi_placa']
+            }],
+        where: {
+            pag_fefi: {
+                [Op.lt]: hoy
+            }
+        }
+    }).then((objetoPagos) => {
+        const amount = Sequelize_1.Pagos.count({
+            where: {
+                pag_fefi: {
+                    [Op.lt]: hoy
+                }
+            }
+        }).then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoPagos,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
+        });
+    });
+};
+exports.getPagosPorVencer = (req, res) => {
+    let xvencer = moment().add(15, 'days');
+    let hoy = moment();
+    Sequelize_1.Pagos.findAll({
+        include: [{
+                model: Sequelize_1.Vehiculos,
+                attributes: ['vehi_id', 'vehi_placa']
+            }],
+        where: {
+            [Op.and]: [{ pag_fefi: { [Op.lt]: xvencer } }, { pag_fefi: { [Op.gte]: hoy } }]
+        }
+    }).then((objetoPagos) => {
+        const amount = Sequelize_1.Pagos.count({
+            where: {
+                [Op.and]: [{ pag_fefi: { [Op.lt]: xvencer } }, { pag_fefi: { [Op.gte]: hoy } }]
+            }
+        }).then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoPagos,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
+        });
     });
 };

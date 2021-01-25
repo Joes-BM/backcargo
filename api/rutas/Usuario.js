@@ -6,6 +6,7 @@ const Usuario_1 = require("../controlador/Usuario");
 exports.usuario_router = express_1.Router();
 exports.usuario_router.get('/usuario', Usuario_1.getUsuario);
 exports.usuario_router.post('/usuario', Usuario_1.postUsuario);
+exports.usuario_router.put('/usuario/cambio/pass', Usuario_1.cambiarContraseñaUsuario);
 exports.usuario_router.get('/usuario/:id', Usuario_1.getUsuarioById);
 exports.usuario_router.put('/usuario', Usuario_1.updateUsuario);
 exports.usuario_router.delete('/usuario/:id_usuario', Usuario_1.deleteUsuario);

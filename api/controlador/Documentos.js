@@ -9,8 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.actualizarEstados = exports.deleteDocumentos = exports.updateDocumentos = exports.posDocumentos = exports.getDocumentosById = exports.getDocumentosEstados = exports.getDocumentos = void 0;
+exports.getDocumentosXVencerByIdTrabajador = exports.getDocumentosVencidos = exports.actualizarEstados = exports.deleteDocumentos = exports.updateDocumentos = exports.posDocumentos = exports.getDocumentosById = exports.getDocumentosEstados = exports.getDocumentos = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
+const moment = require('moment');
 const { Op } = require("sequelize");
 const Sequelize = require('sequelize');
 exports.getDocumentos = (req, res) => {
@@ -196,6 +197,90 @@ exports.actualizarEstados = (req, res) => {
             ok: true,
             contenido: error,
             mensaje: "Error interno en el servidor"
+        });
+    });
+};
+exports.getDocumentosVencidos = (req, res) => {
+    let hoy = moment();
+    Sequelize_1.Documentos.findAll({
+        include: [
+            { model: Sequelize_1.Persona },
+            {
+                model: Sequelize_1.DocumentosPersonales,
+                include: [{ model: Sequelize_1.TipoDocumento }]
+            }
+        ],
+        where: {
+            docu_fefi: {
+                [Op.lt]: hoy
+            }
+        }
+    }).then((objetoDocumento) => {
+        const amount = Sequelize_1.Documentos.count({
+            where: {
+                docu_fefi: {
+                    [Op.lt]: hoy
+                }
+            }
+        }).then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoDocumento,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
+        });
+    });
+};
+exports.getDocumentosXVencerByIdTrabajador = (req, res) => {
+    var pers_id = req.params.idtrabajador;
+    let hoy = moment();
+    let fechaAviso = moment().add(20, 'days');
+    Sequelize_1.Documentos.findAll({
+        include: [
+            { model: Sequelize_1.Persona },
+            {
+                model: Sequelize_1.DocumentosPersonales,
+                include: [{ model: Sequelize_1.TipoDocumento }]
+            }
+        ],
+        where: {
+            docu_fefi: {
+                [Op.and]: [
+                    { [Op.lt]: fechaAviso },
+                    { [Op.gte]: hoy },
+                ]
+            },
+            pers_id: pers_id
+        }
+    }).then((objetoDocumento) => {
+        const amount = Sequelize_1.Documentos.count({
+            where: {
+                docu_fefi: {
+                    [Op.and]: [
+                        { [Op.lt]: fechaAviso },
+                        { [Op.gte]: hoy },
+                    ]
+                },
+                pers_id: pers_id
+            }
+        }).then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoDocumento,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
         });
     });
 };

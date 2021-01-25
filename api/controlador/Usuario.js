@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUsuarioByEmail = exports.iniciarSesion = exports.deleteUsuario = exports.updateUsuario = exports.postUsuario = exports.getUsuarioById = exports.getUsuario = void 0;
+exports.iniciarSesion = exports.deleteUsuario = exports.updateUsuario = exports.cambiarContraseñaUsuario = exports.postUsuario = exports.getUsuarioByEmail = exports.getUsuarioById = exports.getUsuario = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
@@ -11,29 +11,33 @@ exports.getUsuario = (req, res) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
     Sequelize_1.Usuario.findAll({
-        attributes: ['usu_id', 'usu_email', 'usu_tipo'],
+        attributes: ['usu_id', 'usu_email', 'usu_tipo', 'usu_esta', 'usu_img', 'pers_id'],
+        include: [{ model: Sequelize_1.Persona, attributes: ['pers_nomb', 'pers_appa', 'pers_apma'] }],
         offset: desde,
         limit: 5
-    }).then((err, obj) => {
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                mensaje: 'Error Cargando Usuarios',
-                errors: err
-            });
-        }
+    }).then((objUsers) => {
         const amount = Sequelize_1.Usuario.count()
-            .then((err, conteo) => {
+            .then((conteo) => {
             res.status(200).json({
                 mensaje: 'OK',
-                contenido: obj,
+                contenido: objUsers,
                 total: conteo
             });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Documentos',
+            errors: err
         });
     });
 };
 exports.getUsuarioById = (req, res) => {
-    Sequelize_1.Usuario.findByPk(req.params.id).then((objUsuario) => {
+    Sequelize_1.Usuario.findByPk(req.params.id, {
+        include: [{
+                model: Sequelize_1.Persona
+            }]
+    }).then((objUsuario) => {
         if (objUsuario) {
             res.status(200).json({
                 message: 'Usuario encontrado ',
@@ -48,14 +52,31 @@ exports.getUsuarioById = (req, res) => {
         }
     });
 };
+exports.getUsuarioByEmail = (req, res) => {
+    Sequelize_1.Usuario.findAll({
+        where: {
+            usu_email: req.params.email
+        }
+    }).then((resultado) => {
+        res.status(200).json({
+            message: 'ok',
+            contenido: resultado
+        });
+    });
+};
 //CREAR USUARIO
 exports.postUsuario = (req, res) => {
+    // console.log("***********************");
+    // console.log(req.body);
+    // console.log("***********************");
+    //{ usuario: { usu_email: 'test1@test.com', usu_pass: '123456' } }
     let objUsuario = Sequelize_1.Usuario.build(req.body.usuario);
     objUsuario.setSaltYHash(req.body.usuario.usu_pass);
     // save()=> promesa que GUARDA el registro en la Base de Datos
     objUsuario.save().then((usuarioCreado) => {
         console.log("USU CREADO", usuarioCreado);
-        Sequelize_1.Usuario.findByPk(usuarioCreado.usu_id).then((usuarioEncontrado) => {
+        Sequelize_1.Usuario.findByPk(usuarioCreado.usu_id)
+            .then((usuarioEncontrado) => {
             console.log("USU ENCONTRADO", usuarioEncontrado);
             res.status(201).json({
                 mensaje: 'Usuario creado',
@@ -69,9 +90,35 @@ exports.postUsuario = (req, res) => {
         });
     });
 };
+exports.cambiarContraseñaUsuario = (req, res) => {
+    let objUsuario = Sequelize_1.Usuario.build(req.body.usuario);
+    objUsuario.setSaltYHash(req.body.usuario.usu_pass);
+    Sequelize_1.Usuario.update({
+        usu_hash: objUsuario.usu_hash,
+        usu_salt: objUsuario.usu_salt,
+        usu_email: objUsuario.usu_email
+    }, {
+        where: {
+            usu_id: req.body.usuario.usu_id
+        }
+    }).then((resp) => {
+        res.status(201).json({
+            mensaje: 'ok',
+            contenido: resp
+        });
+    }).catch((error) => {
+        res.status(501).json({
+            mensaje: 'Error',
+            contenido: error
+        });
+    });
+};
 exports.updateUsuario = (req, res) => {
     Sequelize_1.Usuario.update({
-        usu_nom: req.body.usuario.usu_nom
+        usu_email: req.body.usuario.usu_email,
+        usu_tipo: req.body.usuario.usu_tipo,
+        usu_esta: req.body.usuario.usu_esta,
+        usu_img: req.body.usuario.usu_img
     }, {
         where: {
             usu_id: req.body.usuario.usu_id
@@ -156,17 +203,5 @@ exports.iniciarSesion = (req, res) => {
                 content: 'No se encontro el usuario'
             });
         }
-    });
-};
-exports.getUsuarioByEmail = (req, res) => {
-    Sequelize_1.Usuario.findAll({
-        where: {
-            usu_email: req.params.email
-        }
-    }).then((resultado) => {
-        res.status(200).json({
-            message: 'ok',
-            contenido: resultado
-        });
     });
 };

@@ -11,3 +11,5 @@ exports.documentos_router.put('/documentos/estados', Documentos_1.actualizarEsta
 exports.documentos_router.delete('/documentos/:id', Documentos_1.deleteDocumentos);
 exports.documentos_router.get('/documentos/:id', Documentos_1.getDocumentosById);
 exports.documentos_router.get('/documentos/diferente/vencidos', Documentos_1.getDocumentosEstados);
+exports.documentos_router.get('/documentos/fecha/vencidos', Documentos_1.getDocumentosVencidos);
+exports.documentos_router.get('/documentos/fecha/vencidos/:idtrabajador', Documentos_1.getDocumentosXVencerByIdTrabajador);

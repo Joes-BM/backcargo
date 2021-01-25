@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getLiquidacionByIdCaja = exports.posLiquidacion = exports.getCajaByGastosAdministrativos = void 0;
+exports.getLiquidacionByIdCaja = exports.posLiquidacion = exports.getCajaByGastosAdministrativosPorIdTrabajador = exports.getCajaByGastosAdministrativos = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const { Op } = require("sequelize");
 exports.getCajaByGastosAdministrativos = (req, res) => {
@@ -37,6 +37,55 @@ exports.getCajaByGastosAdministrativos = (req, res) => {
             where: {
                 caja_motivo: 'Gastos Operativos',
                 caja_esta: 'PENDIENTE'
+            }
+        })
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoCaja,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Documentos',
+            errors: err
+        });
+    });
+};
+exports.getCajaByGastosAdministrativosPorIdTrabajador = (req, res) => {
+    var pers_id = req.params.idconductor;
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    Sequelize_1.Caja.findAll({
+        include: [
+            {
+                model: Sequelize_1.Persona,
+                attributes: ['pers_id', 'pers_nomb', 'pers_appa', 'pers_apma', 'pers_temo1', 'pers_temo2', 'pers_email', 'pers_tcta', 'pers_ncta', 'pers_banc']
+            },
+            {
+                model: Sequelize_1.OrdenTrabajo,
+                attributes: ['ordt_nser']
+            }
+        ],
+        where: {
+            caja_motivo: 'Gastos Operativos',
+            caja_esta: {
+                [Op.or]: ['EN PROCESO', 'PENDIENTE']
+            },
+            pers_id: pers_id
+        },
+        offset: desde,
+        limit: 5
+    }).then((objetoCaja) => {
+        const amount = Sequelize_1.Caja.count({
+            where: {
+                caja_motivo: 'Gastos Operativos',
+                caja_esta: {
+                    [Op.or]: ['EN PROCESO', 'PENDIENTE']
+                },
+                pers_id: pers_id
             }
         })
             .then((conteo) => {

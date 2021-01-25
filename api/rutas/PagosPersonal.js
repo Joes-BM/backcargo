@@ -10,6 +10,7 @@ exports.pagosPersonal_router.post('/pagospersonal/detalle', PagosPersonal_1.putP
 exports.pagosPersonal_router.post('/pagospersonal/grabar/acuentaviaje', PagosPersonal_1.grabarACuentaViajeConductor);
 exports.pagosPersonal_router.get('/pagospersonal/detalle/:id', PagosPersonal_1.obtenerPagosPersonalDetalleById);
 exports.pagosPersonal_router.get('/pagospersonal', PagosPersonal_1.obtenerPagosPersonalConcluidos);
+exports.pagosPersonal_router.get('/pagospersonal/conductor/:idconductor', PagosPersonal_1.obtenerPagosPersonalConcluidosPorIdConductor);
 exports.pagosPersonal_router.get('/pagospersonal/liquidar', PagosPersonal_1.obtenerPagosPersonalByLiquidar);
 exports.pagosPersonal_router.get('/pagospersonal/nservicio/:nservicio', PagosPersonal_1.obtenerPagosPersonalByNroServicio);
 exports.pagosPersonal_router.put('/pagospersonal/add', PagosPersonal_1.addViajeParaLiquidar);

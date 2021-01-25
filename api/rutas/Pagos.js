@@ -9,3 +9,5 @@ exports.pagos_router.post('/pagos', Pagos_1.posPagos);
 exports.pagos_router.put('/pagos', Pagos_1.updatePagos);
 exports.pagos_router.delete('/pagos/:id', Pagos_1.deletePagos);
 exports.pagos_router.get('/pagos/:id', Pagos_1.getPagosById);
+exports.pagos_router.get('/pagos/fecha/vencimiento', Pagos_1.getPagosVencidos);
+exports.pagos_router.get('/pagos/vehiculo/porvencer', Pagos_1.getPagosPorVencer);

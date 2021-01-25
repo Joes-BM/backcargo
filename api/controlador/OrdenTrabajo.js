@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOrdenTrabajoFacturadasByIdProveedor = exports.getOrdenTrabajoAutorizadas = exports.removeOrdenTrabajoParaFacturar = exports.addOrdenTrabajoParaFacturar = exports.terminarOrdenTrabajo = exports.iniciarOrdenTrabajo = exports.facturarOrdenTrabajo = exports.deleteOrdenTrabajo = exports.updateOrdenTrabajo = exports.updateSaldosOfOrdenTrabajo = exports.posOrdenTrabajo = exports.getOrdenTrabajoById = exports.getOrdenTrabajo = void 0;
+exports.getOTByIdTrabajador = exports.getOrdenesProcesoPorIdConductor = exports.getOrdenesProceso = exports.getOrdenTrabajoFacturadasByIdProveedor = exports.getOrdenTrabajoAutorizadas = exports.removeOrdenTrabajoParaFacturar = exports.addOrdenTrabajoParaFacturar = exports.terminarOrdenTrabajo = exports.iniciarOrdenTrabajo = exports.facturarOrdenTrabajo = exports.deleteOrdenTrabajo = exports.updateOrdenTrabajo = exports.updateSaldosOfOrdenTrabajo = exports.posOrdenTrabajo = exports.getOrdenTrabajoById = exports.getOrdenTrabajoPorIdTrabajador = exports.getOrdenTrabajo = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const { Op } = require("sequelize");
+const moment = require('moment');
 exports.getOrdenTrabajo = (req, res) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
@@ -34,6 +35,52 @@ exports.getOrdenTrabajo = (req, res) => {
         limit: 5
     }).then((objetoOrdenTrabajo) => {
         const amount = Sequelize_1.OrdenTrabajo.count()
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoOrdenTrabajo,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando OrdenTrabajo',
+            errors: err
+        });
+    });
+};
+exports.getOrdenTrabajoPorIdTrabajador = (req, res) => {
+    var desde = req.query.desde || 0;
+    var pers_id = req.params.idtrabajador;
+    desde = Number(desde);
+    Sequelize_1.OrdenTrabajo.findAll({
+        include: [
+            { model: Sequelize_1.Persona },
+            { model: Sequelize_1.Vehiculos, as: 'vehiculoOrden' },
+            { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+            {
+                model: Sequelize_1.RutaCliente,
+                include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+            }
+        ],
+        where: {
+            ordt_esta: {
+                [Op.ne]: 'TERMINADO'
+            },
+            pers_id: pers_id
+        },
+        offset: desde,
+        limit: 5
+    }).then((objetoOrdenTrabajo) => {
+        const amount = Sequelize_1.OrdenTrabajo.count({
+            where: {
+                ordt_esta: {
+                    [Op.ne]: 'TERMINADO'
+                },
+                pers_id: pers_id
+            },
+        })
             .then((conteo) => {
             res.status(200).json({
                 mensaje: 'OK',
@@ -396,6 +443,149 @@ exports.getOrdenTrabajoFacturadasByIdProveedor = (req, res) => {
             res.status(200).json({
                 mensaje: 'OK',
                 contenido: objetoOrdenTrabajo,
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando OrdenTrabajo',
+            errors: err
+        });
+    });
+};
+//DASHBOARD
+exports.getOrdenesProceso = (req, res) => {
+    let hoy = moment();
+    Sequelize_1.OrdenTrabajo.findAll({
+        include: [
+            {
+                model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                attributes: ['vehi_placa', 'pers_raso'],
+                include: [
+                    {
+                        model: Sequelize_1.Persona, as: 'proveedor',
+                        attributes: ['pers_id', 'pers_tcta', 'pers_banc', 'pers_ncta', 'pers_temo1', 'pers_email']
+                    }
+                ]
+            },
+            {
+                model: Sequelize_1.Vehiculos, as: 'carretaOrden',
+                attributes: ['vehi_placa']
+            },
+            {
+                model: Sequelize_1.RutaCliente,
+                attributes: ['id'],
+                include: [{
+                        model: Sequelize_1.Rutas,
+                        attributes: ['ruta_inic', 'ruta_fin'],
+                    }]
+            },
+        ],
+        where: {
+            ordt_esta: req.params.estado
+        }
+    }).then((objetoOrdenTrabajo) => {
+        const amount = Sequelize_1.OrdenTrabajo.count({
+            where: {
+                ordt_esta: req.params.estado
+            }
+        })
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoOrdenTrabajo,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
+        });
+    });
+};
+exports.getOrdenesProcesoPorIdConductor = (req, res) => {
+    var pers_id = req.params.idconductor;
+    let hoy = moment();
+    Sequelize_1.OrdenTrabajo.findAll({
+        include: [
+            {
+                model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                attributes: ['vehi_placa', 'pers_raso'],
+                include: [
+                    {
+                        model: Sequelize_1.Persona, as: 'proveedor',
+                        attributes: ['pers_id', 'pers_tcta', 'pers_banc', 'pers_ncta', 'pers_temo1', 'pers_email']
+                    }
+                ]
+            },
+            {
+                model: Sequelize_1.Vehiculos, as: 'carretaOrden',
+                attributes: ['vehi_placa']
+            },
+            {
+                model: Sequelize_1.RutaCliente,
+                attributes: ['id'],
+                include: [{
+                        model: Sequelize_1.Rutas,
+                        attributes: ['ruta_inic', 'ruta_fin'],
+                    }]
+            },
+        ],
+        where: {
+            ordt_esta: req.params.estado,
+            pers_id: pers_id
+        }
+    }).then((objetoOrdenTrabajo) => {
+        const amount = Sequelize_1.OrdenTrabajo.count({
+            where: {
+                ordt_esta: req.params.estado,
+                pers_id: pers_id
+            }
+        })
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoOrdenTrabajo,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando Personas',
+            errors: err
+        });
+    });
+};
+exports.getOTByIdTrabajador = (req, res) => {
+    var pers_id = req.params.idtrabajador;
+    Sequelize_1.OrdenTrabajo.findAll({
+        where: {
+            pers_id: pers_id,
+            ordt_esta: {
+                [Op.and]: [
+                    { [Op.ne]: 'AUTORIZADA' }, { [Op.ne]: 'INICIADA' }
+                ]
+            },
+        }
+    }).then((objetoOrdenTrabajo) => {
+        const amount = Sequelize_1.OrdenTrabajo.count({
+            where: {
+                pers_id: pers_id,
+                ordt_esta: {
+                    [Op.and]: [
+                        { [Op.ne]: 'AUTORIZADA' }, { [Op.ne]: 'INICIADA' }
+                    ]
+                }
+            }
+        })
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoOrdenTrabajo,
+                total: conteo
             });
         });
     }).catch((err) => {
