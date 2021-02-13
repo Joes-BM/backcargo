@@ -4,13 +4,23 @@ exports.buscar = exports.busqEspecifica = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const { Op } = require("sequelize");
 const Sequelize = require('sequelize');
+const moment = require('moment');
 // ****************************
 //     BUSQUEDA ESPECIFICA
 // ****************************
 exports.busqEspecifica = (req, res) => {
     var busqueda = req.params.busqueda;
     var tabla = req.params.tabla;
+    var finicio = req.query.fechaIni || moment('2021-01-01');
+    var ffinal = req.query.fechaFin || moment();
+    var estado = req.query.estado || 'TODO';
+    var motivo = req.query.motivo || 'Gastos Operativos';
+    var condicion = req.query.condicion || 'PROPIO';
     var promesa;
+    // console.log("--------------------------------------");
+    // console.log(estado);
+    // console.log(tabla);
+    // console.log("--------------------------------------");
     switch (tabla) {
         case 'cliente':
             promesa = buscarClientes(busqueda);
@@ -42,12 +52,24 @@ exports.busqEspecifica = (req, res) => {
         case 'facturar':
             promesa = buscarOrdenTrabajoPorFacturar(busqueda);
             break;
-        case 'pagospersonal':
-            promesa = buscarPagosPersonalByConcluidos(busqueda);
+        case 'ordent':
+            promesa = buscarOrdenTrabajoSegunFiltro(busqueda, finicio, ffinal, estado);
             break;
-        // case 'combustible':
-        //     promesa= buscarCombustible(busqueda);
-        //     break;
+        case 'pagospersonal':
+            promesa = buscarPagosPersonalByConcluidos(busqueda, finicio, ffinal, estado);
+            break;
+        case 'cajas':
+            promesa = buscarCajaSegunFitro(busqueda, finicio, ffinal, estado, motivo);
+            break;
+        case 'facturas':
+            promesa = buscarFacturas(busqueda, finicio, ffinal, estado);
+            break;
+        case 'ordentprovehi':
+            promesa = buscarOrdenTrabajoSegunFiltroProveedorVehiculo(busqueda, finicio, ffinal, estado, condicion);
+            break;
+        case 'ordentfacycob':
+            promesa = buscarOrdenTrabajoSegunFiltroFacturadasCobradas(busqueda, finicio, ffinal, estado, condicion);
+            break;
         default:
             return res.status(400).json({
                 ok: false,
@@ -67,6 +89,10 @@ exports.busqEspecifica = (req, res) => {
 // ****************************
 exports.buscar = (req, res) => {
     var busqueda = req.params.busqueda;
+    var finicio = req.query.fechaIni || moment('2021-01-01');
+    var ffinal = req.query.fechaFin || moment();
+    var estado = req.query.estado || 'TODO';
+    var motivo = req.query.motivo || 'Gastos Operativos';
     Promise.all([
         buscarTrabajadores(busqueda),
         buscarProveedores(busqueda),
@@ -78,7 +104,9 @@ exports.buscar = (req, res) => {
         buscarPagos(busqueda),
         buscarCaja(busqueda),
         buscarOrdenTrabajoPorFacturar(busqueda),
-        buscarPagosPersonalByConcluidos(busqueda),
+        buscarOrdenTrabajoSegunFiltro(busqueda, finicio, ffinal, estado),
+        buscarPagosPersonalByConcluidos(busqueda, finicio, ffinal, estado),
+        buscarCajaSegunFitro(busqueda, finicio, ffinal, estado, motivo),
     ]).then((respuestas) => {
         res.status(200).json({
             mensaje: 'OK',
@@ -92,7 +120,9 @@ exports.buscar = (req, res) => {
             pago: respuestas[7],
             caja: respuestas[8],
             factura: respuestas[9],
-            pagospersonal: respuestas[10],
+            ordent: respuestas[10],
+            pagospersonal: respuestas[11],
+            cajas: respuestas[12],
         });
     });
     // buscarTrabajadores(busqueda)
@@ -323,11 +353,108 @@ function buscarCaja(busqueda) {
                             }
                         }]
                 }]
-        }).then((objPagos) => {
-            resolve(objPagos);
+        }).then((objCaja) => {
+            resolve(objCaja);
         }).catch((err) => {
             reject("Error al cargar Pagos" + err);
         });
+    });
+}
+function buscarCajaSegunFitro(busqueda, finicio, ffinal, estado, motivo) {
+    return new Promise((resolve, reject) => {
+        if (motivo == "Gastos Operativos") {
+            Sequelize_1.Caja.findAll({
+                include: [
+                    {
+                        model: Sequelize_1.Persona,
+                        attributes: ['pers_id', 'pers_nomb', 'pers_appa', 'pers_apma', 'pers_temo1', 'pers_temo2', 'pers_email', 'pers_tcta', 'pers_ncta', 'pers_banc'],
+                        where: {
+                            [Op.or]: [{
+                                    pers_nomb: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_appa: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_apma: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }]
+                        }
+                    },
+                    {
+                        model: Sequelize_1.OrdenTrabajo,
+                        attributes: ['ordt_nser']
+                    }
+                ],
+                where: [
+                    {
+                        caja_motivo: motivo,
+                        caja_esta: {
+                            [Op.eq]: estado
+                        },
+                        caja_fech: {
+                            [Op.and]: {
+                                [Op.gte]: finicio,
+                                [Op.lte]: ffinal
+                            }
+                        }
+                    }
+                ]
+            }).then((objCaja) => {
+                resolve(objCaja);
+            }).catch((err) => {
+                reject("Error al cargar Caja" + err);
+            });
+        }
+        else {
+            Sequelize_1.Caja.findAll({
+                include: [
+                    {
+                        model: Sequelize_1.Persona,
+                        attributes: ['pers_id', 'pers_nomb', 'pers_appa', 'pers_apma', 'pers_temo1', 'pers_temo2', 'pers_email', 'pers_tcta', 'pers_ncta', 'pers_banc'],
+                        where: {
+                            [Op.or]: [{
+                                    pers_nomb: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_appa: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_apma: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }]
+                        }
+                    },
+                    {
+                        model: Sequelize_1.OrdenTrabajo,
+                        attributes: ['ordt_nser']
+                    }
+                ],
+                where: [
+                    {
+                        caja_esta: {
+                            [Op.eq]: estado
+                        },
+                        caja_fech: {
+                            [Op.and]: {
+                                [Op.gte]: finicio,
+                                [Op.lte]: ffinal
+                            }
+                        }
+                    }
+                ]
+            }).then((objCaja) => {
+                resolve(objCaja);
+            }).catch((err) => {
+                reject("Error al cargar Caja" + err);
+            });
+        }
     });
 }
 function buscarOrdenTrabajoPorFacturar(busqueda) {
@@ -359,37 +486,249 @@ function buscarOrdenTrabajoPorFacturar(busqueda) {
         });
     });
 }
-function buscarPagosPersonalByConcluidos(busqueda) {
+function buscarOrdenTrabajoSegunFiltro(busqueda, finicio, ffinal, estado) {
     return new Promise((resolve, reject) => {
-        Sequelize_1.PagosPersonal.findAll({
-            where: [{
-                    pagper_estt: "CONCLUIDO",
-                }],
-            include: [{
-                    model: Sequelize_1.Persona,
-                    required: true,
-                    attributes: ['pers_nomb', 'pers_appa', 'pers_apma', 'pers_tcta', 'pers_ncta', 'pers_banc', 'pers_fopa', 'pers_suel'],
-                    where: {
-                        [Op.or]: [{
-                                pers_nomb: {
-                                    [Op.regexp]: busqueda
-                                }
-                            }, {
-                                pers_appa: {
-                                    [Op.regexp]: busqueda
-                                }
-                            }, {
-                                pers_apma: {
-                                    [Op.regexp]: busqueda
-                                }
-                            }],
-                        pers_maes: 'TRABAJADOR'
+        Sequelize_1.OrdenTrabajo.findAll({
+            where: {
+                ordt_esta: {
+                    [Op.eq]: estado
+                },
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
                     }
-                }]
-        }).then((objPagos) => {
-            resolve(objPagos);
+                },
+            },
+            include: [
+                { model: Sequelize_1.Persona },
+                {
+                    model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                    where: {
+                        vehi_placa: {
+                            [Op.regexp]: busqueda
+                        }
+                    }
+                },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    required: true,
+                    include: [
+                        {
+                            model: Sequelize_1.Persona,
+                        }, { model: Sequelize_1.Rutas }
+                    ]
+                }
+            ]
+        }).then((objOrdenes) => {
+            resolve(objOrdenes);
         }).catch((err) => {
-            reject("Error al cargar Pagos del Personal" + err);
+            reject("Error al buscar Razon Social" + err);
+        });
+    });
+}
+function buscarOrdenTrabajoSegunFiltroProveedorVehiculo(busqueda, finicio, ffinal, estado, condicion) {
+    return new Promise((resolve, reject) => {
+        Sequelize_1.OrdenTrabajo.findAll({
+            where: {
+                ordt_esta: {
+                    [Op.eq]: estado
+                },
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                },
+            },
+            include: [
+                { model: Sequelize_1.Persona },
+                {
+                    model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                    where: {
+                        vehi_placa: {
+                            [Op.regexp]: busqueda
+                        },
+                        vehi_cond: condicion
+                    }
+                },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    required: true,
+                    include: [
+                        {
+                            model: Sequelize_1.Persona,
+                        }, { model: Sequelize_1.Rutas }
+                    ]
+                }
+            ]
+        }).then((objOrdenes) => {
+            resolve(objOrdenes);
+        }).catch((err) => {
+            reject("Error al buscar Razon Social" + err);
+        });
+    });
+}
+function buscarOrdenTrabajoSegunFiltroFacturadasCobradas(busqueda, finicio, ffinal, estado, condicion) {
+    return new Promise((resolve, reject) => {
+        Sequelize_1.OrdenTrabajo.findAll({
+            where: {
+                ordt_esta: {
+                    [Op.eq]: estado
+                },
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                },
+            },
+            include: [
+                { model: Sequelize_1.Persona },
+                { model: Sequelize_1.Vehiculos, as: 'vehiculoOrden' },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    required: true,
+                    include: [
+                        {
+                            required: true,
+                            model: Sequelize_1.Persona,
+                            where: {
+                                pers_raso: {
+                                    [Op.regexp]: busqueda
+                                }
+                            }
+                        }, { model: Sequelize_1.Rutas }
+                    ]
+                }
+            ]
+        }).then((objOrdenes) => {
+            resolve(objOrdenes);
+        }).catch((err) => {
+            reject("Error al buscar Razon Social" + err);
+        });
+    });
+}
+function buscarPagosPersonalByConcluidos(busqueda, finicio, ffinal, estado) {
+    return new Promise((resolve, reject) => {
+        if (estado == "TODO") {
+            Sequelize_1.PagosPersonal.findAll({
+                where: [{
+                        pagper_estt: "CONCLUIDO",
+                        pagper_esta: {
+                            [Op.ne]: estado
+                        },
+                        pagper_fein: {
+                            [Op.and]: {
+                                [Op.gte]: finicio,
+                                [Op.lte]: ffinal
+                            }
+                        }
+                    }],
+                include: [{
+                        model: Sequelize_1.Persona,
+                        required: true,
+                        attributes: ['pers_nomb', 'pers_appa', 'pers_apma', 'pers_tcta', 'pers_ncta', 'pers_banc', 'pers_fopa', 'pers_suel'],
+                        where: {
+                            [Op.or]: [{
+                                    pers_nomb: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_appa: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_apma: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }],
+                            pers_maes: 'TRABAJADOR'
+                        }
+                    }]
+            }).then((objPagos) => {
+                resolve(objPagos);
+            }).catch((err) => {
+                reject("Error al cargar Pagos del Personal" + err);
+            });
+        }
+        else {
+            Sequelize_1.PagosPersonal.findAll({
+                where: [{
+                        pagper_estt: "CONCLUIDO",
+                        pagper_esta: estado,
+                        pagper_fein: {
+                            [Op.and]: {
+                                [Op.gte]: finicio,
+                                [Op.lte]: ffinal
+                            }
+                        }
+                    }],
+                include: [{
+                        model: Sequelize_1.Persona,
+                        required: true,
+                        attributes: ['pers_nomb', 'pers_appa', 'pers_apma', 'pers_tcta', 'pers_ncta', 'pers_banc', 'pers_fopa', 'pers_suel'],
+                        where: {
+                            [Op.or]: [{
+                                    pers_nomb: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_appa: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }, {
+                                    pers_apma: {
+                                        [Op.regexp]: busqueda
+                                    }
+                                }],
+                            pers_maes: 'TRABAJADOR'
+                        }
+                    }]
+            }).then((objPagos) => {
+                resolve(objPagos);
+            }).catch((err) => {
+                reject("Error al cargar Pagos del Personal" + err);
+            });
+        }
+    });
+}
+function buscarFacturas(busqueda, finicio, ffinal, estado) {
+    return new Promise((resolve, reject) => {
+        Sequelize_1.Factura.findAll({
+            include: [
+                {
+                    required: true,
+                    model: Sequelize_1.OrdenTrabajo,
+                    include: [{
+                            model: Sequelize_1.RutaCliente,
+                            required: true,
+                            include: [{ model: Sequelize_1.Persona,
+                                    where: {
+                                        pers_raso: {
+                                            [Op.regexp]: busqueda
+                                        }
+                                    }
+                                }]
+                        }]
+                }
+            ],
+            where: {
+                fact_esta: estado,
+                fact_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            }
+        }).then((objFacturas) => {
+            resolve(objFacturas);
+        }).catch((err) => {
+            reject("Error al buscar Razon Social" + err);
         });
     });
 }

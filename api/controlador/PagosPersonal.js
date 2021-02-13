@@ -9,9 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.grabarACuentaViajeConductor = exports.obtenerPagosPersonalByNroServicio = exports.putPagoPersonal = exports.posPagoPersonal = exports.obtenerPagosPersonalByLiquidar = exports.actualizarFechaFinal = exports.actualizarEstado = exports.actualizarMonto = exports.actualizarPagoPersonal = exports.removeViajeParaLiquidar = exports.addViajeParaLiquidar = exports.obtenerPagosPersonalDetalleById = exports.obtenerPagosPersonalConcluidosPorIdConductor = exports.obtenerPagosPersonalConcluidos = exports.grabarPagosConductores = void 0;
+exports.grabarACuentaViajeConductor = exports.obtenerPagosPersonalByNroServicio = exports.putPagoPersonal = exports.posPagoPersonal = exports.obtenerPagosPersonalByLiquidar = exports.actualizarFechaFinal = exports.actualizarEstado = exports.actualizarMonto = exports.actualizarPagoPersonal = exports.removeViajeParaLiquidar = exports.addViajeParaLiquidar = exports.obtenerPagosPersonalDetalleById = exports.obtenerPagosPersonalConcluidosPorIdConductor = exports.obtenerPagosPersonalEstadoFiniFfin = exports.obtenerPagosPersonalConcluidos = exports.grabarPagosConductores = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const Sequelize = require('sequelize');
+const moment = require('moment');
+const { Op } = require("sequelize");
 exports.grabarPagosConductores = (req, res) => {
     let objPagosPersonal = Sequelize_1.PagosPersonal.build(req.body);
     objPagosPersonal.save().then((objPagosCreado) => {
@@ -43,7 +45,11 @@ exports.obtenerPagosPersonalConcluidos = (req, res) => {
         offset: desde,
         limit: 5
     }).then((objetoPagos) => {
-        const amount = Sequelize_1.PagosPersonal.count()
+        const amount = Sequelize_1.PagosPersonal.count({
+            where: {
+                pagper_esta: "PENDIENTE"
+            }
+        })
             .then((conteo) => {
             res.status(200).json({
                 mensaje: 'OK',
@@ -58,6 +64,105 @@ exports.obtenerPagosPersonalConcluidos = (req, res) => {
             errors: err
         });
     });
+};
+exports.obtenerPagosPersonalEstadoFiniFfin = (req, res) => {
+    var finicio = req.body.fechaIni || moment('2021-01-01');
+    var ffinal = req.body.fechaFin || moment();
+    var estado = req.body.estado || 'TODO';
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    if (estado == "TODO") {
+        Sequelize_1.PagosPersonal.findAll({
+            include: [{
+                    model: Sequelize_1.Persona,
+                    attributes: ['pers_nomb', 'pers_appa', 'pers_apma', 'pers_tcta', 'pers_ncta', 'pers_banc', 'pers_fopa', 'pers_suel']
+                }],
+            where: {
+                pagper_esta: {
+                    [Op.ne]: estado
+                },
+                pagper_fein: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoPagos) => {
+            const amount = Sequelize_1.PagosPersonal.count({
+                where: {
+                    pagper_esta: {
+                        [Op.ne]: estado
+                    },
+                    pagper_fein: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoPagos,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando Personas',
+                errors: err
+            });
+        });
+    }
+    else {
+        Sequelize_1.PagosPersonal.findAll({
+            include: [{
+                    model: Sequelize_1.Persona,
+                    attributes: ['pers_nomb', 'pers_appa', 'pers_apma', 'pers_tcta', 'pers_ncta', 'pers_banc', 'pers_fopa', 'pers_suel']
+                }],
+            where: {
+                pagper_esta: estado,
+                pagper_fein: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoPagos) => {
+            const amount = Sequelize_1.PagosPersonal.count({
+                where: {
+                    pagper_esta: estado,
+                    pagper_fein: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoPagos,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando Personas',
+                errors: err
+            });
+        });
+    }
 };
 exports.obtenerPagosPersonalConcluidosPorIdConductor = (req, res) => {
     var desde = req.query.desde || 0;

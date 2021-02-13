@@ -18,3 +18,5 @@ exports.pagosPersonal_router.put('/pagospersonal/remove', PagosPersonal_1.remove
 exports.pagosPersonal_router.put('/pagospersonal/monto', PagosPersonal_1.actualizarMonto);
 exports.pagosPersonal_router.put('/pagospersonal/estado', PagosPersonal_1.actualizarEstado);
 exports.pagosPersonal_router.put('/pagospersonal/fechafin', PagosPersonal_1.actualizarFechaFinal);
+//REPORTES
+exports.pagosPersonal_router.post('/pagospersonal/reporte/todos', PagosPersonal_1.obtenerPagosPersonalEstadoFiniFfin);

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOTByIdTrabajador = exports.getOrdenesProcesoPorIdConductor = exports.getOrdenesProceso = exports.getOrdenTrabajoFacturadasByIdProveedor = exports.getOrdenTrabajoAutorizadas = exports.removeOrdenTrabajoParaFacturar = exports.addOrdenTrabajoParaFacturar = exports.terminarOrdenTrabajo = exports.iniciarOrdenTrabajo = exports.facturarOrdenTrabajo = exports.deleteOrdenTrabajo = exports.updateOrdenTrabajo = exports.updateSaldosOfOrdenTrabajo = exports.posOrdenTrabajo = exports.getOrdenTrabajoById = exports.getOrdenTrabajoPorIdTrabajador = exports.getOrdenTrabajo = void 0;
+exports.getOTByIdTrabajador = exports.getOrdenesProcesoPorIdConductor = exports.getOrdenesProceso = exports.getOrdenTrabajoCobradasPropias = exports.getOrdenTrabajoFacturadasByIdProveedor = exports.getOrdenTrabajoAutorizadas = exports.removeOrdenTrabajoParaFacturar = exports.addOrdenTrabajoParaFacturar = exports.terminarOrdenTrabajo = exports.iniciarOrdenTrabajo = exports.facturarOrdenTrabajo = exports.deleteOrdenTrabajo = exports.updateOrdenTrabajo = exports.updateSaldosOfOrdenTrabajo = exports.posOrdenTrabajo = exports.getOrdenTrabajoById = exports.getOrdenTrabajoPorIdTrabajador = exports.getOrdenTrabajoEstadoFiniFfinOfProVehi = exports.getOrdenTrabajoEstadoFiniFfinFacturadasOCobradas = exports.getOrdenTrabajoEstadoFiniFfin = exports.getOrdenTrabajo = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const { Op } = require("sequelize");
 const moment = require('moment');
@@ -49,6 +49,376 @@ exports.getOrdenTrabajo = (req, res) => {
             errors: err
         });
     });
+};
+exports.getOrdenTrabajoEstadoFiniFfin = (req, res) => {
+    var finicio = req.body.fechaIni || moment('2021-01-01');
+    var ffinal = req.body.fechaFin || moment();
+    var estado = req.body.estado || 'TODO';
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    if (estado == "TODO") {
+        Sequelize_1.OrdenTrabajo.findAll({
+            include: [
+                { model: Sequelize_1.Persona },
+                { model: Sequelize_1.Vehiculos, as: 'vehiculoOrden' },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                }
+            ],
+            where: {
+                ordt_esta: {
+                    [Op.ne]: estado
+                },
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoOrdenTrabajo) => {
+            const amount = Sequelize_1.OrdenTrabajo.count({
+                where: {
+                    ordt_esta: {
+                        [Op.ne]: estado
+                    },
+                    ordt_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoOrdenTrabajo,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando OrdenTrabajo',
+                errors: err
+            });
+        });
+    }
+    else {
+        Sequelize_1.OrdenTrabajo.findAll({
+            include: [
+                { model: Sequelize_1.Persona },
+                { model: Sequelize_1.Vehiculos, as: 'vehiculoOrden' },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                }
+            ],
+            where: {
+                ordt_esta: estado,
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoOrdenTrabajo) => {
+            const amount = Sequelize_1.OrdenTrabajo.count({
+                where: {
+                    ordt_esta: estado,
+                    ordt_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoOrdenTrabajo,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando OrdenTrabajo',
+                errors: err
+            });
+        });
+    }
+};
+exports.getOrdenTrabajoEstadoFiniFfinFacturadasOCobradas = (req, res) => {
+    var finicio = req.body.fechaIni || moment('2021-01-01');
+    var ffinal = req.body.fechaFin || moment();
+    var estado = req.body.estado || 'TODO';
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    if (estado == "TODO") {
+        Sequelize_1.OrdenTrabajo.findAll({
+            include: [
+                { model: Sequelize_1.Persona },
+                { model: Sequelize_1.Vehiculos, as: 'vehiculoOrden' },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                }
+            ],
+            where: {
+                [Op.or]: [
+                    { ordt_esta: 'COBRADO' },
+                    { ordt_esta: 'FACTURADO' },
+                    { ordt_esta: 'LIQUIDADO' },
+                ],
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoOrdenTrabajo) => {
+            const amount = Sequelize_1.OrdenTrabajo.count({
+                where: {
+                    [Op.or]: [
+                        { ordt_esta: 'COBRADO' },
+                        { ordt_esta: 'FACTURADO' },
+                        { ordt_esta: 'LIQUIDADO' },
+                    ],
+                    ordt_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoOrdenTrabajo,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando OrdenTrabajo',
+                errors: err
+            });
+        });
+    }
+    else {
+        Sequelize_1.OrdenTrabajo.findAll({
+            include: [
+                { model: Sequelize_1.Persona },
+                { model: Sequelize_1.Vehiculos, as: 'vehiculoOrden' },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                }
+            ],
+            where: {
+                ordt_esta: estado,
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoOrdenTrabajo) => {
+            const amount = Sequelize_1.OrdenTrabajo.count({
+                where: {
+                    ordt_esta: estado,
+                    ordt_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoOrdenTrabajo,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando OrdenTrabajo',
+                errors: err
+            });
+        });
+    }
+};
+exports.getOrdenTrabajoEstadoFiniFfinOfProVehi = (req, res) => {
+    var finicio = req.body.fechaIni || moment('2021-01-01');
+    var ffinal = req.body.fechaFin || moment();
+    var estado = req.body.estado || 'TODO';
+    var desde = req.query.desde || 0;
+    var condicion = req.query.condicion || "PROPIO";
+    desde = Number(desde);
+    if (estado == "TODO") {
+        Sequelize_1.OrdenTrabajo.findAll({
+            include: [
+                { model: Sequelize_1.Persona },
+                {
+                    model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                    where: {
+                        vehi_cond: condicion
+                    }
+                },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                }
+            ],
+            where: {
+                ordt_esta: {
+                    [Op.ne]: estado
+                },
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoOrdenTrabajo) => {
+            const amount = Sequelize_1.OrdenTrabajo.count({
+                include: [
+                    { model: Sequelize_1.Persona },
+                    {
+                        model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                        where: {
+                            vehi_cond: condicion
+                        }
+                    },
+                    { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                    {
+                        model: Sequelize_1.RutaCliente,
+                        include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                    }
+                ],
+                where: {
+                    ordt_esta: {
+                        [Op.ne]: estado
+                    },
+                    ordt_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoOrdenTrabajo,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando OrdenTrabajo',
+                errors: err
+            });
+        });
+    }
+    else {
+        Sequelize_1.OrdenTrabajo.findAll({
+            include: [
+                { model: Sequelize_1.Persona },
+                {
+                    model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                    where: {
+                        vehi_cond: "TERCIARIZADO"
+                    }
+                },
+                { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                }
+            ],
+            where: {
+                ordt_esta: estado,
+                ordt_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objetoOrdenTrabajo) => {
+            const amount = Sequelize_1.OrdenTrabajo.count({
+                include: [
+                    { model: Sequelize_1.Persona },
+                    {
+                        model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                        where: {
+                            vehi_cond: "TERCIARIZADO"
+                        }
+                    },
+                    { model: Sequelize_1.Vehiculos, as: 'carretaOrden' },
+                    {
+                        model: Sequelize_1.RutaCliente,
+                        include: [{ model: Sequelize_1.Persona }, { model: Sequelize_1.Rutas }]
+                    }
+                ],
+                where: {
+                    ordt_esta: estado,
+                    ordt_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objetoOrdenTrabajo,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando OrdenTrabajo',
+                errors: err
+            });
+        });
+    }
 };
 exports.getOrdenTrabajoPorIdTrabajador = (req, res) => {
     var desde = req.query.desde || 0;
@@ -185,9 +555,6 @@ exports.updateSaldosOfOrdenTrabajo = (req, res) => {
     });
 };
 exports.updateOrdenTrabajo = (req, res) => {
-    console.log("***************************");
-    console.log(req.body);
-    console.log("***************************");
     Sequelize_1.OrdenTrabajo.update({
         ordt_fech: req.body.OrdenTrabajo.ordt_fech,
         ordt_nser: req.body.OrdenTrabajo.ordt_nser,
@@ -401,6 +768,8 @@ exports.getOrdenTrabajoAutorizadas = (req, res) => {
 };
 // OBTENER ORDENES DE TRABAJO "PAGADAS" "FACTURADAS" "" SEGUND ID DEL PROVEEDOR
 exports.getOrdenTrabajoFacturadasByIdProveedor = (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
     Sequelize_1.OrdenTrabajo.findAll({
         attributes: ['ordt_id', 'ordt_nser', 'ordt_acta', 'ordt_sald', 'ordt_flet', 'ordt_detra', 'ordt_dotro', 'ordt_esta', 'ordt_fech', 'ordt_fefi', 'ordt_fpbanco', 'ordt_pter', 'ordt_dbanc'],
         include: [
@@ -427,6 +796,9 @@ exports.getOrdenTrabajoFacturadasByIdProveedor = (req, res) => {
                 include: [{
                         model: Sequelize_1.Rutas,
                         attributes: ['ruta_inic', 'ruta_fin'],
+                    }, {
+                        model: Sequelize_1.Persona,
+                        attributes: ['pers_raso']
                     }]
             },
         ],
@@ -436,13 +808,143 @@ exports.getOrdenTrabajoFacturadasByIdProveedor = (req, res) => {
                 { ordt_esta: 'POR PAGAR' }
             ]
         },
+        offset: desde,
         limit: 5
     }).then((objetoOrdenTrabajo) => {
-        const amount = Sequelize_1.OrdenTrabajo.count()
+        const amount = Sequelize_1.OrdenTrabajo.count({
+            include: [
+                {
+                    model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                    attributes: ['vehi_placa', 'pers_raso'],
+                    include: [
+                        {
+                            model: Sequelize_1.Persona, as: 'proveedor',
+                            attributes: ['pers_id', 'pers_tcta', 'pers_banc', 'pers_ncta', 'pers_temo1', 'pers_email']
+                        }
+                    ],
+                    where: {
+                        prov_id: req.params.id
+                    }
+                },
+                {
+                    model: Sequelize_1.Vehiculos, as: 'carretaOrden',
+                    attributes: ['vehi_placa']
+                },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    attributes: ['id'],
+                    include: [{
+                            model: Sequelize_1.Rutas,
+                            attributes: ['ruta_inic', 'ruta_fin'],
+                        }]
+                },
+            ],
+            where: {
+                [Op.or]: [
+                    { ordt_esta: 'COBRADO' },
+                    { ordt_esta: 'POR PAGAR' }
+                ]
+            },
+        })
             .then((conteo) => {
             res.status(200).json({
                 mensaje: 'OK',
                 contenido: objetoOrdenTrabajo,
+                total: conteo
+            });
+        });
+    }).catch((err) => {
+        res.status(500).json({
+            ok: false,
+            mensaje: 'Error Cargando OrdenTrabajo',
+            errors: err
+        });
+    });
+};
+exports.getOrdenTrabajoCobradasPropias = (req, res) => {
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    Sequelize_1.OrdenTrabajo.findAll({
+        attributes: ['ordt_id', 'ordt_nser', 'ordt_acta', 'ordt_sald', 'ordt_flet', 'ordt_detra', 'ordt_dotro', 'ordt_esta', 'ordt_fech', 'ordt_fefi', 'ordt_fpbanco', 'ordt_pter', 'ordt_dbanc'],
+        include: [
+            {
+                model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                attributes: ['vehi_placa', 'pers_raso'],
+                include: [
+                    {
+                        model: Sequelize_1.Persona, as: 'proveedor',
+                        attributes: ['pers_id', 'pers_tcta', 'pers_banc', 'pers_ncta', 'pers_temo1', 'pers_email']
+                    }
+                ],
+                where: {
+                    prov_id: null,
+                }
+            },
+            {
+                model: Sequelize_1.Vehiculos, as: 'carretaOrden',
+                attributes: ['vehi_placa']
+            },
+            {
+                model: Sequelize_1.RutaCliente,
+                attributes: ['id'],
+                include: [{
+                        model: Sequelize_1.Rutas,
+                        attributes: ['ruta_inic', 'ruta_fin'],
+                    }, {
+                        model: Sequelize_1.Persona,
+                        attributes: ['pers_raso']
+                    }]
+            },
+        ],
+        where: {
+            [Op.or]: [
+                { ordt_esta: 'COBRADO' },
+                { ordt_esta: 'POR PAGAR' }
+            ]
+        },
+        offset: desde,
+        limit: 5
+    }).then((objetoOrdenTrabajo) => {
+        const amount = Sequelize_1.OrdenTrabajo.count({
+            include: [
+                {
+                    model: Sequelize_1.Vehiculos, as: 'vehiculoOrden',
+                    attributes: ['vehi_placa', 'pers_raso'],
+                    include: [
+                        {
+                            model: Sequelize_1.Persona, as: 'proveedor',
+                            attributes: ['pers_id', 'pers_tcta', 'pers_banc', 'pers_ncta', 'pers_temo1', 'pers_email']
+                        }
+                    ],
+                    where: {
+                        prov_id: null,
+                    }
+                },
+                {
+                    model: Sequelize_1.Vehiculos, as: 'carretaOrden',
+                    attributes: ['vehi_placa']
+                },
+                {
+                    model: Sequelize_1.RutaCliente,
+                    attributes: ['id'],
+                    include: [{
+                            model: Sequelize_1.Rutas,
+                            attributes: ['ruta_inic', 'ruta_fin'],
+                        }]
+                },
+            ],
+            where: {
+                [Op.or]: [
+                    { ordt_esta: 'COBRADO' },
+                    { ordt_esta: 'POR PAGAR' }
+                ]
+            },
+        })
+            .then((conteo) => {
+            res.status(200).json({
+                mensaje: 'OK',
+                contenido: objetoOrdenTrabajo,
+                total: conteo
             });
         });
     }).catch((err) => {

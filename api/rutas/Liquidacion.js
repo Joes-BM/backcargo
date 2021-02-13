@@ -9,3 +9,5 @@ exports.liquidacion_router.get('/liquidacion/gastosadministrativos', Liquidacion
 exports.liquidacion_router.get('/liquidacion/gastosadministrativos/:idconductor', Liquidacion_1.getCajaByGastosAdministrativosPorIdTrabajador);
 exports.liquidacion_router.post('/liquidacion/gastosadministrativos', Liquidacion_1.posLiquidacion);
 exports.liquidacion_router.get('/liquidacion/caja/:id', Liquidacion_1.getLiquidacionByIdCaja);
+//REPORTES
+exports.liquidacion_router.post('/liquidacion/reporte/gastosadministrativos', Liquidacion_1.getCajaByEstadoFiniFfin);

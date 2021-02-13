@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.posFactura = exports.getOTSeleccionados = exports.getOrdenTrabajoPorFacturar = exports.getOrdenTrabajoPorFacturarPorCliente = void 0;
+exports.FacturasByEstadoFiniFfin = exports.posFactura = exports.getOTSeleccionados = exports.getOrdenTrabajoPorFacturar = exports.getOrdenTrabajoPorFacturarPorCliente = void 0;
 const Sequelize_1 = require("../configuracion/Sequelize");
 const { Op } = require("sequelize");
+const moment = require('moment');
 // FACTURAR
 exports.getOrdenTrabajoPorFacturarPorCliente = (req, res) => {
     var idCliente = req.params.idCliente;
@@ -166,4 +167,119 @@ exports.posFactura = (req, res) => {
             mensaje: "Error interno en el servidor"
         });
     });
+};
+exports.FacturasByEstadoFiniFfin = (req, res) => {
+    var finicio = req.body.fechaIni || moment('2021-01-01');
+    var ffinal = req.body.fechaFin || moment();
+    var estado = req.body.estado || 'TODO';
+    var desde = req.query.desde || 0;
+    desde = Number(desde);
+    if (estado == "TODO") {
+        Sequelize_1.Factura.findAll({
+            include: [
+                {
+                    model: Sequelize_1.OrdenTrabajo,
+                    include: [
+                        {
+                            model: Sequelize_1.RutaCliente,
+                            include: [{ model: Sequelize_1.Persona }]
+                        }
+                    ],
+                    attributes: ['ordt_nser']
+                }
+            ],
+            where: {
+                fact_esta: {
+                    [Op.ne]: estado
+                },
+                fact_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objFactura) => {
+            const amount = Sequelize_1.Factura.count({
+                where: {
+                    fact_esta: {
+                        [Op.ne]: estado
+                    },
+                    fact_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objFactura,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando Facturas',
+                errors: err
+            });
+        });
+    }
+    else {
+        Sequelize_1.Factura.findAll({
+            include: [
+                {
+                    model: Sequelize_1.OrdenTrabajo,
+                    include: [
+                        {
+                            model: Sequelize_1.RutaCliente,
+                            include: [{ model: Sequelize_1.Persona }]
+                        }
+                    ],
+                    attributes: ['ordt_nser']
+                }
+            ],
+            where: {
+                fact_esta: estado,
+                fact_fech: {
+                    [Op.and]: {
+                        [Op.gte]: finicio,
+                        [Op.lte]: ffinal
+                    }
+                }
+            },
+            offset: desde,
+            limit: 5
+        }).then((objFactura) => {
+            const amount = Sequelize_1.Factura.count({
+                where: {
+                    fact_esta: estado,
+                    fact_fech: {
+                        [Op.and]: {
+                            [Op.gte]: finicio,
+                            [Op.lte]: ffinal
+                        }
+                    }
+                }
+            })
+                .then((conteo) => {
+                res.status(200).json({
+                    mensaje: 'OK',
+                    contenido: objFactura,
+                    total: conteo
+                });
+            });
+        }).catch((err) => {
+            res.status(500).json({
+                ok: false,
+                mensaje: 'Error Cargando Facturas',
+                errors: err
+            });
+        });
+    }
 };

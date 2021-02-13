@@ -10,3 +10,4 @@ exports.caja_router.put('/caja', Caja_1.updateCaja);
 exports.caja_router.delete('/caja/:id', Caja_1.deleteCaja);
 exports.caja_router.get('/caja/:id', Caja_1.getCajaById);
 exports.caja_router.get('/caja/orden/:id', Caja_1.getCajaByIdOrdenTrabajo);
+exports.caja_router.post('/caja/reporte/todos', Caja_1.getCajaPoEstadoFiniFfin);

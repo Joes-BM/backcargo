@@ -18,9 +18,14 @@ exports.ordentrabajo_router.delete('/ordentrabajo/:id', OrdenTrabajo_1.deleteOrd
 exports.ordentrabajo_router.get('/ordentrabajo/:id', OrdenTrabajo_1.getOrdenTrabajoById);
 //CAJA
 exports.ordentrabajo_router.get('/ordentrabajo/estado/autorizado', OrdenTrabajo_1.getOrdenTrabajoAutorizadas);
+exports.ordentrabajo_router.get('/ordentrabajo/estado/cobrado', OrdenTrabajo_1.getOrdenTrabajoCobradasPropias);
 //ORDENES DE TRABAJO FACTURADO POR ID DE PROVEEDOR
 exports.ordentrabajo_router.get('/ordentrabajo/terminado/proveedor/:id', OrdenTrabajo_1.getOrdenTrabajoFacturadasByIdProveedor);
 //DASHBOARD
 exports.ordentrabajo_router.get('/ordentrabajo/estados/:estado', OrdenTrabajo_1.getOrdenesProceso);
 exports.ordentrabajo_router.get('/ordentrabajo/estados/:estado/:idconductor', OrdenTrabajo_1.getOrdenesProcesoPorIdConductor);
 exports.ordentrabajo_router.get('/ordentrabajo/conductor/:idtrabajador', OrdenTrabajo_1.getOTByIdTrabajador);
+//REPORTES
+exports.ordentrabajo_router.post('/ordentrabajo/reporte/todos', OrdenTrabajo_1.getOrdenTrabajoEstadoFiniFfin);
+exports.ordentrabajo_router.post('/ordentrabajo/reporte/facycob', OrdenTrabajo_1.getOrdenTrabajoEstadoFiniFfinFacturadasOCobradas);
+exports.ordentrabajo_router.post('/ordentrabajo/reporte/provehi', OrdenTrabajo_1.getOrdenTrabajoEstadoFiniFfinOfProVehi);

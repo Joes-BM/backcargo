@@ -57,7 +57,8 @@ exports.cobrarOrdenTrabajo = (req, res) => {
     Sequelize_1.OrdenTrabajo.update({
         ordt_esta: "COBRADO",
         ordt_fpbanco: req.body.OrdenTrabajo.ordt_fpbanco,
-        ordt_dbanc: req.body.OrdenTrabajo.ordt_dbanc
+        ordt_dbanc: req.body.OrdenTrabajo.ordt_dbanc,
+        ordt_sald: req.body.OrdenTrabajo.ordt_sald
     }, {
         where: {
             ordt_id: req.body.OrdenTrabajo.ordt_id

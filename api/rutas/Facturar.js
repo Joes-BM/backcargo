@@ -8,3 +8,4 @@ exports.facturar_router.get('/facturar/:idCliente', Facturar_1.getOrdenTrabajoPo
 exports.facturar_router.get('/facturar', Facturar_1.getOrdenTrabajoPorFacturar);
 exports.facturar_router.get('/seleccion/ordent', Facturar_1.getOTSeleccionados);
 exports.facturar_router.post('/facturar', Facturar_1.posFactura);
+exports.facturar_router.post('/factura/reporte/todos', Facturar_1.FacturasByEstadoFiniFfin);
